@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SharpHook;
+using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Diagnostics;
@@ -6,9 +7,11 @@ using System.Linq;
 using System.Windows.Threading;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Reloaded.Assembler;
 using Reloaded.Memory;
 using Reloaded.Memory.Sources;
+using SharpHook.Native;
 
 namespace PortalGear
 {
@@ -22,7 +25,8 @@ namespace PortalGear
         {
             InitializeComponent();
         }
-
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
         [StructLayout(LayoutKind.Sequential)]
         public struct Vec3
         {
@@ -63,6 +67,8 @@ namespace PortalGear
         private Quaternion saved_rotation = new Quaternion();
         private Vec3 saved_camera = new Vec3();
         private DispatcherTimer posUpdateTimer;
+        private Task kbTask;
+        private SimpleGlobalHook kbHook;
         private void posUpdate_Tick(object sender, EventArgs e)
         {
             if (!isAttached)
@@ -75,10 +81,41 @@ namespace PortalGear
             front_mem.Read<ulong>(addr_info_loc, out curr_pos_addr);
             if (curr_pos_addr != 0)
             {
-                
-                front_mem.Read<ExternalMemory, float>((nuint)(curr_pos_addr+0x80), out this_pos, 3, false);
+
+                front_mem.Read<ExternalMemory, float>((nuint)(curr_pos_addr + 0x80), out this_pos, 3, false);
                 string block_text = $"X: {this_pos[0]:F2}\nY: {this_pos[1]:F2}\nZ: {this_pos[2]}";
                 posTextBlock.Text = block_text;
+                block_text = $"X: {saved_pos.x:F2}\nY: {saved_pos.y:F2}\nZ: {saved_pos.z:F2}";
+                savedPosTextBlock.Text = block_text;
+            }
+        }
+        private void handle_keys(object sender, KeyboardHookEventArgs e)
+        {   
+        
+            
+            if (isAttached)
+            {
+                IntPtr frontiers_wnd = frontiersProc.MainWindowHandle;
+                IntPtr fg_wnd = GetForegroundWindow();
+                if (!frontiers_wnd.Equals(fg_wnd))
+                { 
+                    return;
+                }
+                KeyCode keycode = e.Data.KeyCode;
+                if (keycode == KeyCode.VcF9)
+                {
+                    
+                    saveBtn_OnClick(sender, e);
+                } else if (keycode == KeyCode.VcF10)
+                {
+                    
+                    loadBtn_OnClick(sender, e);
+                }
+            }
+            else
+            {
+                MessageBox.Show(e.Data.KeyCode.ToString());
+                
             }
         }
         
@@ -149,6 +186,10 @@ jmp r10
                 posUpdateTimer.Interval = new TimeSpan(0, 0, 0, 0, 200);
                 posUpdateTimer.Tick += new EventHandler(posUpdate_Tick);
                 posUpdateTimer.Start();
+                kbHook = new SimpleGlobalHook(true);
+                kbHook.KeyPressed += handle_keys;
+                kbTask = kbHook.RunAsync();
+
             }
             else
             {
@@ -156,10 +197,13 @@ jmp r10
                 front_mem.SafeWrite<ExternalMemory, Byte>((nuint) pos_inject_loc.ToInt64(), origbytes_pos_speed, false);
                 isAttached = false;
                 attachBtn.Content = "Attach";
+                kbHook.Dispose();
+                
             }
         }
+
         
-        private void saveBtn_OnClick(object sender, RoutedEventArgs e)
+        private void saveBtn_OnClick(object sender, EventArgs e)
         {
             float[] this_pos = new float[3];
             front_mem.Read<ulong>(addr_info_loc, out curr_pos_addr);
@@ -169,8 +213,7 @@ jmp r10
                 front_mem.Read<Vec3>((nuint) (curr_pos_addr + 0x80), out saved_pos, true);
                 front_mem.Read<Quaternion>((nuint) (curr_pos_addr + 0x90), out saved_rotation, true);
                 front_mem.Read<Vec3>((nuint) (curr_pos_addr + 0xD0), out saved_speed, true);
-                string block_text = $"X: {saved_pos.x:F2}\nY: {saved_pos.y:F2}\nZ: {saved_pos.z:F2}";
-                savedPosTextBlock.Text = block_text;
+                
             }
 
             if (curr_cam_addr != 0)
@@ -180,7 +223,7 @@ jmp r10
             }
         }
 
-        private void loadBtn_OnClick(object sender, RoutedEventArgs e)
+        private void loadBtn_OnClick(object sender, EventArgs e)
         {
             front_mem.Read<ulong>(addr_info_loc, out curr_pos_addr);
             front_mem.Read<ulong>((addr_info_loc + 8), out curr_cam_addr);
@@ -206,5 +249,7 @@ jmp r10
                 front_mem.SafeWrite<ExternalMemory, byte>((nuint) cam_inject_loc.ToInt64(), origbytes_camera, false);
             }
         }
+
+
     }
 }
