@@ -42,13 +42,18 @@
           <HintPath>..\packages\Reloaded.Assembler.1.0.14\lib\netstandard2.0\Reloaded.Assembler.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="Reloaded.Memory, Version=7.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\packages\Reloaded.Memory.7.0.0\lib\netstandard2.0\Reloaded.Memory.dll</HintPath>
-          <Private>True</Private>
+        <Reference Include="Reloaded.Memory, Version=8.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+          <HintPath>..\packages\Reloaded.Memory.8.0.1\lib\netstandard2.0\Reloaded.Memory.dll</HintPath>
         </Reference>
         <Reference Include="Reloaded.Memory.Buffers, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>..\packages\Reloaded.Memory.Buffers.2.0.0\lib\netstandard2.0\Reloaded.Memory.Buffers.dll</HintPath>
           <Private>True</Private>
+        </Reference>
+        <Reference Include="Reloaded.Memory.Sigscan, Version=3.1.6.0, Culture=neutral, processorArchitecture=MSIL">
+          <HintPath>..\packages\Reloaded.Memory.Sigscan.3.1.6\lib\netstandard2.0\Reloaded.Memory.Sigscan.dll</HintPath>
+        </Reference>
+        <Reference Include="Reloaded.Memory.Sigscan.Definitions, Version=1.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+          <HintPath>..\packages\Reloaded.Memory.Sigscan.Definitions.1.1.1\lib\netstandard2.0\Reloaded.Memory.Sigscan.Definitions.dll</HintPath>
         </Reference>
         <Reference Include="SharpHook, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
           <HintPath>..\packages\SharpHook.4.0.0\lib\net461\SharpHook.dll</HintPath>
