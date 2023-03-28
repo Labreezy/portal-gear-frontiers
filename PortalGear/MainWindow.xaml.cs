@@ -1,4 +1,5 @@
-﻿using Reloaded.Assembler;
+﻿using Microsoft.Win32;
+using Reloaded.Assembler;
 using Reloaded.Memory.Sigscan;
 using Reloaded.Memory.Sources;
 using SharpHook;
@@ -6,11 +7,15 @@ using SharpHook.Native;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace PortalGear
@@ -43,6 +48,7 @@ namespace PortalGear
             public float z;
             public float w;
         }
+
         private Process frontiersProc;
         private int cave1_off = 0x56808;
         private int cave2_off = 0x821E5;
@@ -69,6 +75,75 @@ namespace PortalGear
         private DispatcherTimer posUpdateTimer;
         private Task kbTask;
         private SimpleGlobalHook kbHook;
+		private string previousLine;
+		/*
+		public static string filePath = "C:/files/speedrun/soniminimap/movements.txt";
+		static FileStream aFile = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+          */
+		StreamWriter sw;
+        static long initialTimestamp = new DateTimeOffset(DateTime.UtcNow).ToFileTime();
+
+
+        public static double RadiansToDegrees(double radians)
+        {
+            return radians / Math.PI * 180;
+        }
+        public static float ToHeading(Quaternion rotation)
+        {
+            float angle = (float)(Math.Acos(rotation.w) * 2);
+            bool sign = rotation.y > 0;
+            if (sign)
+            {
+                if (angle < Math.PI)
+                {
+
+                    return (float)RadiansToDegrees(-angle + Math.PI);
+                }
+                else
+                {
+                    return (float)RadiansToDegrees(2 * Math.PI - angle + Math.PI);
+                }
+
+            }
+            else
+            {
+
+                return (float)RadiansToDegrees(angle + Math.PI);
+
+            }
+        }
+
+        public static bool CompareArrays(float[] floats, float[] floats2) {
+            return floats.ToString() == floats2.ToString();
+            }
+        public static Vector3 ToEulerAngles(Quaternion q)
+        {
+            Vector3 angles = new();
+
+            // roll / x
+            double sinr_cosp = 2 * (q.w * q.x + q.y * q.z);
+            double cosr_cosp = 1 - 2 * (q.x * q.x + q.y * q.y);
+            angles.X = (float)Math.Atan2(sinr_cosp, cosr_cosp);
+
+            // pitch / y
+            double sinp = 2 * (q.w * q.y - q.z * q.x);
+            if (Math.Abs(sinp) >= 1)
+            {
+                if (sinp < 0) { angles.Y = (float)(-1 * Math.PI / 2); }
+                else { angles.Y = (float)(Math.PI / 2); }
+            }
+            else
+            {
+                angles.Y = (float)Math.Asin(sinp);
+            }
+
+            // yaw / z
+            double siny_cosp = 2 * (q.w * q.z + q.x * q.y);
+            double cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z);
+            angles.Z = (float)Math.Atan2(siny_cosp, cosy_cosp);
+
+            return angles;
+        }
         private void posUpdate_Tick(object sender, EventArgs e)
         {
             if (!isAttached)
@@ -78,31 +153,68 @@ namespace PortalGear
 
 
             float[] this_pos = new float[3];
+  
 
-            // detach when sonicfrontiers exits instead of crashing
-            try { front_mem.Read<ulong>(addr_info_loc, out curr_pos_addr); }
+			// detach when sonicfrontiers exits instead of crashing
+			try { front_mem.Read<ulong>(addr_info_loc, out curr_pos_addr); }
             catch (Reloaded.Memory.Exceptions.MemoryException)
             {
                 posUpdateTimer.Stop();
                 isAttached = false;
                 attachBtn.Content = "Attach";
                 kbHook.Dispose();
+                sw.Close();
+                filename.Text = "";
+
                 return;
             }
             if (curr_pos_addr != 0)
             {
+
                 Vec3 vector_speed;
+                Quaternion rotation;
                 front_mem.Read<ExternalMemory, float>((nuint)(curr_pos_addr + 0x80), out this_pos, 3, false);
+                front_mem.Read<Quaternion>((nuint)(curr_pos_addr + 0x90), out rotation, true);
                 front_mem.Read<Vec3>((nuint)(curr_pos_addr + 0xD0), out vector_speed, true);
                 float plane_speed = (float)Math.Sqrt(Math.Pow(vector_speed.x, 2) + Math.Pow(vector_speed.z, 2));
                 float vertical_speed = vector_speed.y;
+               // Vector3 euler_rotation = ToEulerAngles(rotation);
+                //float heading = ToHeading(euler_rotation);
+                float heading = (float)(Math.Acos(rotation.w) * 2);
+                //float yaw = (float) (Math.Atan2(2.0 * (rotation.w * rotation.x + rotation.y * rotation.z), -1.0 + 2.0 * (rotation.x * rotation.x + rotation.y * rotation.y)) / Math.PI * 180);
+
                 string block_text = $"X: {this_pos[0]:F2}\nY: {this_pos[1]:F2}\nZ: {this_pos[2]:F2}" +
-                    $"\nHorizontal Speed: {plane_speed:F2}\nVertical Speed: {vertical_speed:F2}";
+                    $"\nHorizontal Speed: {plane_speed:F2}\nVertical Speed: {vertical_speed:F2}" +
+                                        // $"\nQuaternion: {rotation.x:F3}, {rotation.y:F3}, {rotation.z:F3}, {rotation.w:F3}" +
+                                        $"\nHeading: {ToHeading(rotation):F2}"
+
+                    //	$"\nHeading: {heading:F2}" +
+                    //$"\nEuler degrees: {euler_rotation.X / Math.PI * 180:F2}, {euler_rotation.Y / Math.PI * 180:F2}, {euler_rotation.Z / Math.PI * 180:F2}"
+                    ;
                 posTextBlock.Text = block_text;
                 block_text = $"X: {saved_pos.x:F2}\nY: {saved_pos.y:F2}\nZ: {saved_pos.z:F2}";
                 savedPosTextBlock.Text = block_text;
-            }
-        }
+
+                long Timestamp = new DateTimeOffset(DateTime.UtcNow).ToFileTime();
+         
+                    string csvText = $"{this_pos[0]:F2},{this_pos[1]:F2},{this_pos[2]:F2}";
+             //   csvText += "\t" + string.Join(" , ", previous_pos);
+           
+                    if (sw != null && sw.BaseStream != null && csvText != previousLine)
+                    {
+                        try
+                        {
+                            sw.WriteLine(csvText);
+                        }
+                        catch (System.NullReferenceException)
+                        {
+
+                        }
+                    }
+                previousLine = csvText;
+               
+			}
+		}
         private void handle_keys(object sender, KeyboardHookEventArgs e)
         {
 
@@ -120,7 +232,8 @@ namespace PortalGear
                 {
 
                     saveBtn_OnClick(sender, e);
-                } else if (keycode == KeyCode.VcF10)
+                }
+                else if (keycode == KeyCode.VcF10)
                 {
 
                     loadBtn_OnClick(sender, e);
@@ -218,7 +331,7 @@ jmp r10
                 front_mem.SafeWrite<ExternalMemory, byte>((nuint)cam_inject_loc.ToInt64(), cam_jmpbytes);
                 isAttached = true;
                 attachBtn.Content = "Detach";
-                posUpdateTimer.Interval = new TimeSpan(0, 0, 0, 0, 200);
+                posUpdateTimer.Interval = new TimeSpan(0, 0, 0, 0, 16);
                 posUpdateTimer.Tick += new EventHandler(posUpdate_Tick);
                 posUpdateTimer.Start();
                 kbHook = new SimpleGlobalHook(true);
@@ -226,6 +339,7 @@ jmp r10
                 kbTask = kbHook.RunAsync();
 
             }
+            // if detaching
             else
             {
                 posUpdateTimer.Stop();
@@ -233,7 +347,9 @@ jmp r10
                 front_mem.SafeWrite<ExternalMemory, byte>((nuint)cam_inject_loc.ToInt64(), origbytes_camera, false);
                 isAttached = false;
                 attachBtn.Content = "Attach";
-                kbHook.Dispose();
+				filename.Text = "";
+
+				kbHook.Dispose();
 
             }
         }
@@ -309,6 +425,48 @@ jmp r10
         {
             TextBox textbox = (TextBox)sender;
             textbox.SelectAll();
+        }
+
+        private void OpenBtn_Click(object sender, RoutedEventArgs e)
+        {
+
+			Debug.WriteLine("trying to open new file");
+
+			Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+			dlg.FileName = ""; // Default file name
+			dlg.DefaultExt = ".txt"; // Default file extension
+			dlg.Filter = "Text documents (.txt)|*.txt"; // Filter files by extension
+			Nullable<bool> result = dlg.ShowDialog();
+
+			if (result == true)
+				filename.Text = dlg.SafeFileName;
+
+			{
+				try
+                {
+                    sw = (new StreamWriter(dlg.FileName));
+
+                    Debug.WriteLine("opened new file");
+                }
+                catch (SecurityException ex)
+                {
+                    MessageBox.Show($"Security error.\n\nError message: {ex.Message}\n\n" +
+                    $"Details:\n\n{ex.StackTrace}");
+                }
+            }
+        }
+        private void CloseBtn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if(sw != null) { sw.Close(); }
+                filename.Text = "";
+                
+            }
+            catch (SecurityException ex)
+            {
+                return;
+            }
         }
     }
 }

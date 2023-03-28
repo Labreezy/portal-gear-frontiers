@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PortalGear"
         mc:Ignorable="d"
-         Title="Portal Gear Beta 3" Height="350" Width="525" Closing="MainWindow_OnClosing">
-    <Grid ShowGridLines="False">
+         Title="Portal Gear Beta 3" Height="550" Width="625" Closing="MainWindow_OnClosing">
+    <Grid ShowGridLines="False" Background="Black">
         <Grid.ColumnDefinitions>
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
@@ -14,29 +14,35 @@
             <ColumnDefinition></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="91*"></RowDefinition>
-            <RowDefinition Height="91*"></RowDefinition>
+            <RowDefinition Height="54*"></RowDefinition>
+            <RowDefinition Height="124*"></RowDefinition>
             <RowDefinition Height="25"></RowDefinition>
             <RowDefinition Height="35"></RowDefinition>
-            <RowDefinition Height="60*"></RowDefinition>
+            <RowDefinition Height="59*"></RowDefinition>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Text="Saved Position (F9 To Save):" HorizontalAlignment="Center" VerticalAlignment="Center" Height="16" Width="146"/>
-        <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="Current Position (F10 To Load):" HorizontalAlignment="Center" VerticalAlignment="Center" Height="16" Width="162"></TextBlock>
-        <TextBlock Grid.Column="2" Grid.ColumnSpan="2" Name="camTextBlock" HorizontalAlignment="Center" VerticalAlignment="Center" Height="16" />
-        <TextBlock Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Name="posTextBlock" HorizontalAlignment="Center" VerticalAlignment="Center"  />
-        <TextBlock Grid.Column="2" Grid.ColumnSpan="2" Name="savedPosTextBlock" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Text="Saved Position (F9 To Save):" HorizontalAlignment="Center" VerticalAlignment="Center" Height="16" Width="260" FontFamily="UD Digi Kyokasho NK-R" Foreground="White" TextAlignment="Center"/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="Current Position (F10 To Load):" HorizontalAlignment="Center" VerticalAlignment="Center" Height="16" Width="260" FontFamily="UD Digi Kyokasho NK-R" Foreground="White" TextAlignment="Center"/>
+        <TextBlock Grid.Column="3" Name="camTextBlock" HorizontalAlignment="Center" VerticalAlignment="Center" Height="16" Foreground="White" FontFamily="UD Digi Kyokasho NK-R" Width="0" />
+        <TextBlock Grid.Row="1" Grid.Column="2" Name="posTextBlock" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontFamily="UD Digi Kyokasho NK-R" Width="294" Grid.ColumnSpan="2" Margin="10,0,0,0" />
+        <TextBlock Grid.Column="2" Name="savedPosTextBlock" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" FontFamily="UD Digi Kyokasho NK-R" Width="294" Grid.ColumnSpan="2" Margin="10,0,0,0" >
 
-        <TextBlock Grid.Row="2" Grid.Column="0" HorizontalAlignment="Center">X coord</TextBlock>
-        <TextBlock Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center">Y coord</TextBlock>
-        <TextBlock Grid.Row="2" Grid.Column="2" HorizontalAlignment="Center">Z coord</TextBlock>
+        </TextBlock>
 
-        <TextBox GotFocus="selectAll" Name="xpos" Grid.Row="3" Grid.Column="0" />
-        <TextBox GotFocus="selectAll" Name="ypos" Grid.Row="3" Grid.Column="1" />
-        <TextBox GotFocus="selectAll" Name="zpos" Grid.Row="3" Grid.Column="2" />
-        <Button Click="Submit_OnClick" Grid.ColumnSpan="1" Grid.Row="3" Grid.Column="3"  Name="submitBtn">Move to</Button>
+        <TextBlock Grid.Row="1" HorizontalAlignment="Center" FontFamily="UD Digi Kyokasho NK-R" Foreground="White" Margin="0,248,0,0" Grid.RowSpan="2" Width="55" TextAlignment="Center">X coord</TextBlock>
+        <TextBlock Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" FontFamily="UD Digi Kyokasho NK-R" Foreground="White" Margin="0,248,0,0" Grid.RowSpan="2" Width="55" TextAlignment="Center">Y coord</TextBlock>
+        <TextBlock Grid.Row="1" Grid.Column="2" HorizontalAlignment="Center" FontFamily="UD Digi Kyokasho NK-R" Foreground="White" Margin="0,248,0,0" Grid.RowSpan="2" Width="55" TextAlignment="Center">Z coord</TextBlock>
 
-        <Button Click="AttachBtn_OnClick" Grid.ColumnSpan="4" Grid.Row="4" Grid.Column="0" Margin="71,20,72,20" Name="attachBtn">Attach</Button>
+        <TextBox GotFocus="selectAll" Name="xpos" Grid.Row="2" Grid.Column="0" Margin="0,25,0,0" Grid.RowSpan="2" />
+        <TextBox GotFocus="selectAll" Name="ypos" Grid.Row="2" Grid.ColumnSpan="2" Margin="156,25,0,0" Grid.RowSpan="2" />
+        <TextBox GotFocus="selectAll" Name="zpos" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="156,25,156,0" Grid.RowSpan="2" />
+        <Button Click="Submit_OnClick" Grid.ColumnSpan="1" Grid.Row="2" Grid.Column="3"  Name="submitBtn" TextBlock.FontFamily="UD Digi Kyokasho NK-R" TextBlock.Foreground="White" BorderBrush="#FFC3C3C3" Foreground="Black" Margin="0,25,0,0" Grid.RowSpan="2">Move to</Button>
+        <Button Click="OpenBtn_Click" Grid.Row="4" Grid.Column="0" Margin="10,20,10,67" Name="openBtn" FontFamily="UD Digi Kyokasho NK-R">Select Output File</Button>
+        <TextBlock Grid.ColumnSpan="2" Height="20" Grid.Row="4" Grid.Column="0" Name="filename" FontFamily="UD Digi Kyokasho NK-R" Foreground="White" Margin="0,70,0,28" />
+        <Button Click="CloseBtn_Click" Grid.Row="4" Grid.Column="2" Margin="10,20,10,37" Name="closeBtn" FontFamily="UD Digi Kyokasho NK-R">Close Output File</Button>
+
+
+        <Button Click="AttachBtn_OnClick" Grid.Row="4" Grid.Column="3" Margin="10,20,10,37" Name="attachBtn" FontFamily="UD Digi Kyokasho NK-R">Attach</Button>
 
 
     </Grid>
