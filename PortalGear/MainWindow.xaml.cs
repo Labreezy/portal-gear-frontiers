@@ -348,6 +348,7 @@ jmp r10
                 isAttached = false;
                 attachBtn.Content = "Attach";
 				filename.Text = "";
+                try { sw.Close(); } catch { }
 
 				kbHook.Dispose();
 
