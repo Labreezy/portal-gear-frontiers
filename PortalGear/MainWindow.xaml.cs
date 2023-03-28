@@ -439,11 +439,12 @@ jmp r10
 			Nullable<bool> result = dlg.ShowDialog();
 
 			if (result == true)
-				filename.Text = dlg.SafeFileName;
 
 			{
+				filename.Text = dlg.SafeFileName;
+
 				try
-                {
+				{
                     sw = (new StreamWriter(dlg.FileName));
 
                     Debug.WriteLine("opened new file");
