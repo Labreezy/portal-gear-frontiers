@@ -163,7 +163,11 @@ namespace PortalGear
                 isAttached = false;
                 attachBtn.Content = "Attach";
                 kbHook.Dispose();
-                sw.Close();
+                if (sw != null && sw.BaseStream != null)
+                {
+
+                    sw.Close();
+                }
                 filename.Text = "";
 
                 return;
@@ -348,7 +352,8 @@ jmp r10
                 isAttached = false;
                 attachBtn.Content = "Attach";
 				filename.Text = "";
-                try { sw.Close(); } catch { }
+				if (sw != null && sw.BaseStream != null) { 
+                    sw.Close(); } 
 
 				kbHook.Dispose();
 
@@ -461,7 +466,7 @@ jmp r10
         {
             try
             {
-                if(sw != null) { sw.Close(); }
+                if(sw != null && sw.BaseStream != null) { sw.Close(); }
                 filename.Text = "";
                 
             }
