@@ -152,7 +152,7 @@ namespace PortalGear
                     + $"\nHeading: {ToHeading(current_rotation):F2}";
                 posTextBlock.Text = block_text;
 
-                string csvText = $"{current_pos.x:F2},{current_pos.y:F2},{current_pos.z:F2}";
+                string csvText = $"{current_pos.x:F0},{current_pos.y:F0},{current_pos.z:F0}";
 
                 if (sw != null && sw.BaseStream != null && csvText != previousLine)
                 {
